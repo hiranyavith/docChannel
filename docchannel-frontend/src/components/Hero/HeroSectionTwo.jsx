@@ -10,9 +10,9 @@ function HeroSectionTwo() {
         {/* Grid for Mobile, Flex for Desktop */}
         <div className="grid grid-cols-2 gap-8 md:flex md:flex-row md:justify-around items-center">
           
-          <CountCards count={500} label={"Satisfied Patients"} />
-          <CountCards count={500} label={"Satisfied Patients"} />
-          <CountCards count={500} label={"Satisfied Patients"} />
+          <CountCards count={100} label={"Satisfied Patients"} />
+          <CountCards count={1000} label={"Satisfied Patients"} />
+          <CountCards count={5000} label={"Satisfied Patients"} />
           <CountCards count={500} label={"Satisfied Patients"} />
           
         </div>
