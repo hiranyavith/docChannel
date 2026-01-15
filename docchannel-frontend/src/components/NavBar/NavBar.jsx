@@ -3,9 +3,12 @@ import NavButton from "./NavButton";
 import NavItem from "./NavItem";
 import { TiThMenu } from "react-icons/ti";
 import { FaArrowRight } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 function NavBar() {
   const [open, setOpen] = useState(false);
+  const [isSignIn, setIsSignIn] = useState(true);
+  const navigate = useNavigate();
   return (
     <div className="fixed top-0 left-0 right-0 z-50 px-4 pt-4">
       <nav className="max-w-7xl mx-auto bg-[#77aabc] rounded-full px-6 py-3 flex items-center justify-between shadow-lg">
@@ -33,7 +36,7 @@ function NavBar() {
         </div>
 
         <div className="hidden md:block">
-          <NavButton text="Book Appointment" />
+          {isSignIn ? <NavButton text="Log In" OnClick={() => navigate("/login")}/> : <NavButton text="Book Appointment" OnClick={() => navigate("/")} /> }
         </div>
       </nav>
 

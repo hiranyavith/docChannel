@@ -2,15 +2,22 @@ import { useState } from "react";
 import Footer from "../components/Footer/Footer";
 import NavBar from "../components/NavBar/NavBar";
 import { FcGoogle } from "react-icons/fc";
+import { useNavigate } from "react-router-dom";
 
 function SignUp() {
   const [isSignIn, setIsSignIn] = useState(true);
+  const navigate = useNavigate();
 
   return (
     <>
       <div className="py-12 px-8">
         <div className="bg-[#72A6BB] flex flex-row justify-center items-center p-3 rounded-full">
-          <h1 className="text-white font-nunito font-extrabold text-xl">
+          <h1
+            className="text-white font-nunito font-extrabold text-xl"
+            onClick={() => {
+              navigate("/");
+            }}
+          >
             DocChannel
           </h1>
         </div>
