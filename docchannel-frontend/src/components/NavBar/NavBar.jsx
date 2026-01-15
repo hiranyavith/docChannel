@@ -31,7 +31,8 @@ function NavBar() {
 
         <div className="md:hidden">
           <button className="bg-white text-[#000000] px-4 py-2 md:px-5 md:py-2 md:overflow-hidden rounded-full font-medium hover:bg-gray-100 transition">
-            <FaArrowRight color="#77aabc"/>
+          
+          {!isSignIn ? <FaArrowRight color="#77aabc" onClick={() => navigate('/')}/> : <FaArrowRight color="#77aabc" onClick={() => navigate('/login')}/>}
           </button>
         </div>
 
