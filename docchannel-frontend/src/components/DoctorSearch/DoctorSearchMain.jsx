@@ -1,7 +1,10 @@
 import { FaSearch } from "react-icons/fa";
 import DoctorInput from "./DoctorSerchSectionInput";
+import { useNavigate } from "react-router-dom";
 
 function DoctorSearchMain() {
+  const navigate = useNavigate();
+
   return (
     <>
       <div className="px-4 sm:px-6 md:px-16 w-full max-w-7xl">
@@ -49,7 +52,9 @@ function DoctorSearchMain() {
 
           {/* Search Button */}
           <div className="w-full sm:w-auto">
-            <button className="flex items-center justify-center gap-2 font-nunito font-extrabold bg-white px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-md text-[#72A6BB] text-sm sm:text-base hover:bg-gray-100 active:bg-gray-200 transition whitespace-nowrap w-full sm:w-auto">
+            <button className="flex items-center justify-center gap-2 font-nunito font-extrabold bg-white px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-md text-[#72A6BB] text-sm sm:text-base hover:bg-gray-100 active:bg-gray-200 transition whitespace-nowrap w-full sm:w-auto" onClick={() => {
+              navigate("/searchdoc");
+            }}>
               <FaSearch size={18} /> Search
             </button>
           </div>
