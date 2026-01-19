@@ -3,25 +3,15 @@ import Footer from "../components/Footer/Footer";
 import NavBar from "../components/NavBar/NavBar";
 import { FcGoogle } from "react-icons/fc";
 import { useNavigate } from "react-router-dom";
+import HeaderDocChannel from "../components/HeaderDocChannel/HeaderDocChannel";
 
 function SignUp() {
   const [isSignIn, setIsSignIn] = useState(true);
-  const navigate = useNavigate();
 
   return (
     <>
       <div className="py-12 px-8">
-        <div className="bg-[#72A6BB] flex flex-row justify-center items-center p-3 rounded-full">
-          <h1
-            className="text-white font-nunito font-extrabold text-xl"
-            onClick={() => {
-              navigate("/");
-            }}
-          >
-            DocChannel
-          </h1>
-        </div>
-
+        <HeaderDocChannel/>
         <div className="flex flex-col justify-center items-center mt-12 p-8 max-w-md mx-auto">
           {/* Toggle Buttons */}
           <div className="flex gap-2 mb-8 bg-gray-100 rounded-full p-1 w-full">

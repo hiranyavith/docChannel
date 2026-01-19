@@ -12,6 +12,9 @@ function Footer() {
               <p className="text-white font-nunito font-light">
                 Channel Your Doctor
               </p>
+               <p className="text-white font-nunito font-light">
+                Make Refund
+              </p>
               <p className="text-white font-nunito font-light">
                 Ongoing Number Check
               </p>
