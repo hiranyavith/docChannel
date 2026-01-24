@@ -6,7 +6,7 @@ import HospitalLocationCard from "../components/HospitalLocationCard/HospitalLoc
 function DoctorList() {
   return (
     <div className="p-3 sm:p-4 md:p-6">
-      <HeaderDocChannel />
+      <HeaderDocChannel Title={"DocChannel"}/>
 
       <div className="flex justify-center pt-6 sm:pt-8 w-full">
         <DoctorSearchMain />

@@ -1,6 +1,6 @@
 import {useNavigate } from "react-router-dom";
 
-function HeaderDocChannel() {
+function HeaderDocChannel({Title}) {
   const navigate = useNavigate();
 
   return (
@@ -12,7 +12,7 @@ function HeaderDocChannel() {
             navigate("/");
           }}
         >
-          DocChannel
+          {Title}
         </h1>
       </div>
     </>
