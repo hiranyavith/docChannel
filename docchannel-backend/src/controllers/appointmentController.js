@@ -6,7 +6,7 @@ const sendEmail = require("../utils/emailService");
 
 const PAYHERE_MERCHANT_ID = process.env.PAYHERE_MERCHANT_ID;
 const PAYHERE_MERCHANT_SECRET = process.env.PAYHERE_MERCHANT_SECRET;
-const PAYHERE_MODE = process.env.PAYHERE_MODE;
+const PAYHERE_MODE = process.env.PAYHERE_MODE || "sandbox";
 
 const generatePayhereHash = (merchantId, orderId, amount, currency) => {
   const merchantSecret = PAYHERE_MERCHANT_SECRET;
@@ -17,12 +17,24 @@ const generatePayhereHash = (merchantId, orderId, amount, currency) => {
     .toUpperCase();
 
   const amountFormatted = parseFloat(amount).toFixed(2);
+
+  const hashString =
+    merchantId + orderId + amountFormatted + currency + hashedSecret;
+
+  console.log("Hash Generation Debug:");
+  console.log("- Merchant ID:", merchantId);
+  console.log("- Order ID:", orderId);
+  console.log("- Amount:", amountFormatted);
+  console.log("- Currency:", currency);
+  console.log("- Hashed Secret:", hashedSecret);
+  console.log("- Hash String:", hashString);
+
   const hash = crypto
     .createHash("md5")
-    .update(merchantId + orderId + amountFormatted + currency + hashedSecret)
+    .update(hashString)
     .digest("hex")
     .toUpperCase();
-
+  console.log("- Final Hash:", hash);
   return hash;
 };
 
@@ -487,6 +499,15 @@ exports.initiatePayment = async (req, res) => {
 
     const { scheduleId } = req.body;
 
+    if (!PAYHERE_MERCHANT_ID || !PAYHERE_MERCHANT_SECRET) {
+      console.error("PayHere credentials missing!");
+      await connection.rollback();
+      return res.status(500).json({
+        success: false,
+        message: "Payment gateway configuration error. Please contact support.",
+      });
+    }
+
     if (!req.user || !req.user.id) {
       await connection.rollback();
       return res.status(401).json({
@@ -494,7 +515,7 @@ exports.initiatePayment = async (req, res) => {
         message: "Authentication required",
       });
     }
-    const userId = req.user.user_id;
+    const userId = req.user.id;
 
     // Validate required fields
     if (!scheduleId) {
@@ -583,7 +604,7 @@ exports.initiatePayment = async (req, res) => {
       });
     }
     const patientId = patient[0].patient_id;
-    // Create pending appointment (will be confirmed after payment)
+
     const [result] = await connection.execute(
       `INSERT INTO appointment
     (patients_patient_id, doctor_scheduler_scheduler_id, doctor_doctor_id, appointmentNumber, queue_number, appointment_fee, appointmnetStatus, created_At, schedule_status_schedule_status_id, orderId)
@@ -634,11 +655,20 @@ WHERE p.users_user_id = ?
     );
 
     const patientRecord = patientD[0];
-
     if (!patientRecord) {
       await connection.rollback();
       return res.status(404).json({ message: "Patient details not found" });
     }
+
+    if (!patientRecord.email || !patientRecord.mobile) {
+      await connection.rollback();
+      return res.status(400).json({
+        success: false,
+        message:
+          "Please update your profile with email and phone number before booking",
+      });
+    }
+
     const paymentData = {
       merchant_id: PAYHERE_MERCHANT_ID,
       return_url: `${process.env.FRONTEND_URL}/payment-success`,
@@ -659,7 +689,10 @@ WHERE p.users_user_id = ?
       custom_1: appointmentId.toString(), // Store appointment ID for reference
       custom_2: userId.toString(),
     };
-
+    console.log("Payment data prepared:", {
+      ...paymentData,
+      hash: hash.substring(0, 10) + "...",
+    });
     await connection.commit();
 
     res.json({
@@ -732,7 +765,7 @@ exports.paymentNotify = async (req, res) => {
         `UPDATE appointment 
          SET appointmnetStatus = 'confirmed', 
              updated_at = NOW()
-         WHERE appointment_id = ? AND order_id = ?`,
+         WHERE appointment_id = ? AND orderId = ?`,
         [appointmentId, order_id],
       );
 
@@ -748,7 +781,7 @@ exports.paymentNotify = async (req, res) => {
       await db.execute(
         `UPDATE appointment 
          SET payment_status = 'pending',
-         WHERE appointment_id = ? AND order_id = ?`,
+         WHERE appointment_id = ? AND orderId = ?`,
         [appointmentId, order_id],
       );
 
@@ -763,7 +796,7 @@ exports.paymentNotify = async (req, res) => {
         `UPDATE appointment
          SET payment_status = 'failed',
              updated_at = NOW()
-         WHERE appointment_id = ? AND order_id = ?`,
+         WHERE appointment_id = ? AND orderId = ?`,
         [appointmentId, order_id],
       );
       await db.execute(
