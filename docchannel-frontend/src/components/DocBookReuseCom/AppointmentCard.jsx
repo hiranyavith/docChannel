@@ -1,6 +1,6 @@
 import { FaBookmark } from "react-icons/fa";
 
-function AppointmentCard({ActiveAppointmentCount, Date, Time, AppointmentStatus}){
+function AppointmentCard({ActiveAppointmentCount, Date, Time, AppointmentStatus, Fee}){
     return (
         <>
         <div className="flex flex-col items-center md:items-start">
@@ -21,6 +21,9 @@ function AppointmentCard({ActiveAppointmentCount, Date, Time, AppointmentStatus}
               </button>
             </div>
             {/* </div> */}
+            <div className="flex flex-col">
+              <span className="font-nunito font-bold">Rs. {Fee}</span>
+            </div>
             <div className="flex flex-col">
               <span className="font-nunito font-bold">{AppointmentStatus}</span>
             </div>
