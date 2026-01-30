@@ -6,25 +6,25 @@ import PaymentModal from "./PaymentModal";
 
 function BookingForm({ scheduleId, doctorId }) {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    patientName: "",
-    patientEmail: "",
-    patientPhone: "",
-    patientAge: "",
-    patientGender: "",
-  });
+  //   const [formData, setFormData] = useState({
+  //     patientName: "",
+  //     patientEmail: "",
+  //     patientPhone: "",
+  //     patientAge: "",
+  //     patientGender: "",
+  //   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [paymentData, setPaymentData] = useState(null);
 
   const { token, isAuthenticated, user } = useAuth();
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  //   const handleChange = (e) => {
+  //     setFormData({
+  //       ...formData,
+  //       [e.target.name]: e.target.value,
+  //     });
+  //   };
   useEffect(() => {
     console.log("Auth Status:", {
       isAuthenticated,
@@ -70,10 +70,10 @@ function BookingForm({ scheduleId, doctorId }) {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
-
+      console.log("Payment initiation response:", response.data);
       if (response.data.success) {
-        alert("Appointment booked successfully!");
-        navigate("/profile");
+        setPaymentData(response.data.paymentData);
+        console.log("PayHere payment data set:", response.data.paymentData);
       }
     } catch (error) {
       console.error("Booking failed:", error);
@@ -84,6 +84,7 @@ function BookingForm({ scheduleId, doctorId }) {
   };
 
   const handlePaymentSuccess = async (orderId) => {
+    console.log("Payment completed successfully, order ID:", orderId);
     setLoading(true);
     try {
       // Verify payment status
@@ -96,7 +97,7 @@ function BookingForm({ scheduleId, doctorId }) {
 
       if (response.data.success) {
         alert("Payment successful! Your appointment is confirmed.");
-        navigate("/my-appointments");
+        navigate("/profile");
       }
     } catch (error) {
       console.error("Payment verification failed:", error);
@@ -105,17 +106,20 @@ function BookingForm({ scheduleId, doctorId }) {
       );
     } finally {
       setLoading(false);
+      setPaymentData(null);
     }
   };
 
-  const handlePaymentError = (error) => {
+  const handlePaymentError = (err) => {
+    console.error("Payment error:", err);
     setError("Payment failed. Please try again.");
     setPaymentData(null);
     setLoading(false);
   };
 
   const handlePaymentDismiss = () => {
-    setError("Payment cancelled by user.");
+    console.log("Payment dismissed by user");
+    setError("Payment was cancelled.");
     setPaymentData(null);
     setLoading(false);
   };
@@ -163,7 +167,13 @@ function BookingForm({ scheduleId, doctorId }) {
       >
         {loading ? "Booking..." : "Confirm Booking"}
       </button>
-
+      {paymentData && (
+        <div className="mt-4 p-2 bg-green-100 border border-green-400 rounded text-xs">
+          <p className="font-semibold text-green-800">
+            ✓ Payment data received. Opening PayHere...
+          </p>
+        </div>
+      )}
       {paymentData && (
         <PaymentModal
           paymentData={paymentData}
