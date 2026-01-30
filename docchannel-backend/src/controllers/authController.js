@@ -52,13 +52,15 @@ exports.register = async (req, res) => {
 
     // Insert user into database
     const query =
-      "INSERT INTO users (initial_with_name, email, password,created_At,role_role_id,status_status_id) VALUES (?, ?, ?, NOW(),?,?)";
+      "INSERT INTO users (initial_with_name, email, password,created_At,role_role_id,status_status_id,isProfileComplete,isVerified) VALUES (?, ?, ?, NOW(),?,?,?,?)";
     const [result] = await db.execute(query, [
       fullName.trim(),
       email.toLowerCase(),
       hashedPassword,
       1,
       1,
+      0,
+      0,
     ]);
 
     const userId = result.insertId;

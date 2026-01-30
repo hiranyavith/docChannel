@@ -7,6 +7,7 @@ const authRoutes = require("./src/routes/authRoutes");
 const appointmentRoutes = require("./src/routes/appointmentRoutes");
 const userRoutes = require("./src/routes/userRoutes");
 const adminRoutes = require("./src/routes/adminRoutes");
+const dropdownRoutes = require("./src/routes/dropdownRoutes");
 
 const app = express();
 
@@ -17,15 +18,16 @@ app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
 app.use("/api/auth", authRoutes);
-app.use("/api", appointmentRoutes);
+app.use("/api/appointments", appointmentRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/dropdowns", dropdownRoutes);
 
 app.get("/", (req, res) => {
-    res.send("API is running 🚀");
+  res.send("API is running 🚀");
 });
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });

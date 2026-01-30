@@ -107,14 +107,30 @@ function SignUp() {
         throw new Error(data.message || "Registration Failed");
       }
 
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-      }
+      sessionStorage.setItem(
+        "signupData",
+        JSON.stringify({
+          userId: data.user._id || data.user.id,
+          fullName: data.user.fullName,
+          email: data.user.email,
+          isProfileComplete: false,
+        }),
+      );
 
-      setSuccessMessage("Registration Success!");
+      // if (data.token) {
+      //   localStorage.setItem("token", data.token);
+      //   localStorage.setItem("user", JSON.stringify(data.user));
+      // }
 
-      setIsSignIn(true);
+      setSuccessMessage(
+        "Registration Success! Redirecting to complete your profile...",
+      );
+
+      // setIsSignIn(true);
+
+      setTimeout(() => {
+        navigate("/profile-complete");
+      }, 2000);
 
       return data;
     } catch (error) {
@@ -150,7 +166,7 @@ function SignUp() {
         } else {
           sessionStorage.setItem("token", data.token);
           sessionStorage.setItem("user", JSON.stringify(data.user));
-          login(data.user , data.token);
+          login(data.user, data.token);
         }
       }
 
@@ -209,7 +225,7 @@ function SignUp() {
   return (
     <>
       <div className="py-12 px-8">
-        <HeaderDocChannel Title={"DocChannel"}/>
+        <HeaderDocChannel Title={"DocChannel"} />
         <div className="flex flex-col justify-center items-center mt-12 p-8 max-w-md mx-auto">
           {/* Toggle Buttons */}
           <div className="flex gap-2 mb-8 bg-gray-100 rounded-full p-1 w-full">
