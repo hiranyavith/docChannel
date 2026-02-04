@@ -670,9 +670,10 @@ WHERE p.users_user_id = ?
     }
 
     const paymentData = {
+      sandbox: true,
       merchant_id: PAYHERE_MERCHANT_ID,
-      return_url: `${process.env.FRONTEND_URL}/payment-success`,
-      cancel_url: `${process.env.FRONTEND_URL}/payment-cancel`,
+      return_url: undefined,
+      cancel_url: undefined,
       notify_url: `${process.env.BACKEND_URL}/api/appointments/payment-notify`,
       order_id: orderId,
       items: `Appointment with Dr. ${scheduleCheck[0].initial_with_name}`,
@@ -764,7 +765,7 @@ exports.paymentNotify = async (req, res) => {
       await db.execute(
         `UPDATE appointment 
          SET appointmnetStatus = 'confirmed', 
-             updated_at = NOW()
+             updateAt = NOW()
          WHERE appointment_id = ? AND orderId = ?`,
         [appointmentId, order_id],
       );
@@ -780,7 +781,7 @@ exports.paymentNotify = async (req, res) => {
       // Payment pending
       await db.execute(
         `UPDATE appointment 
-         SET payment_status = 'pending',
+         SET payment_status = 'pending'
          WHERE appointment_id = ? AND orderId = ?`,
         [appointmentId, order_id],
       );
@@ -795,7 +796,7 @@ exports.paymentNotify = async (req, res) => {
       await db.execute(
         `UPDATE appointment
          SET payment_status = 'failed',
-             updated_at = NOW()
+             updateAt = NOW()
          WHERE appointment_id = ? AND orderId = ?`,
         [appointmentId, order_id],
       );
@@ -835,7 +836,8 @@ exports.verifyPayment = async (req, res) => {
         u.user_id
       FROM appointment a
       JOIN doctor d ON a.doctor_doctor_id = d.doctor_id
-      JOIN users u ON d.users_user_id = u.user_id
+      JOIN patients p ON a.patients_patient_id = p.patient_id
+      JOIN users u ON p.users_user_id = u.user_id
       JOIN doctor_scheduler ds ON a.doctor_scheduler_scheduler_id = ds.scheduler_id
       JOIN specialization spc ON d.specialization_specialization_id = spc.specialization_id
       JOIN doctor_scheduler_has_days_of_week dsdw ON ds.scheduler_id = dsdw.doctor_scheduler_scheduler_id

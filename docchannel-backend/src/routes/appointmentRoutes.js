@@ -32,7 +32,7 @@ router.get("/specializations", getSpecializations);
 router.get("/booking-details", getBookingDetails);
 // router.post("/create",authenticateUser, createAppointment);
 router.post("/initiate-payment",authenticateUser, initiatePayment);
-router.get("/verify-payment/:orderId", verifyPayment);
+router.get("/verify-payment/:orderId",authenticateUser, verifyPayment);
 
 router.get("/my-appointments", getUserAppointments);
 router.get("/:appointmentId", getAppointmentById);
