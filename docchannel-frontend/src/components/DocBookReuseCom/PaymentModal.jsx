@@ -1,67 +1,124 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
-function PaymentModal({ paymentData, onSuccess, onErr, onDismiss }) {
+function PaymentModal({ paymentData, onSuccess, onError, onDismiss }) {
+  // 1. Use a ref to track if the payment flow has already started
+  const isPaymentStarted = useRef(false);
+
   useEffect(() => {
-    console.log("PaymentModal mounted with data:", paymentData);
-    if (!window.payhere) {
-      console.error("PayHere SDK not loaded!");
-      onErr("PayHere payment gateway not loaded. Please refresh the page.");
+    // 2. PREVENT DOUBLE EXECUTION: If already started, stop here.
+    if (isPaymentStarted.current) {
+      return;
+    }
+    
+    if (!paymentData) {
+      console.log("No payment data provided");
       return;
     }
 
-    if (paymentData) {
-      console.log("Initiating PayHere payment...");
-      initiatePayment();
-    }
-  }, [paymentData]);
+    // Mark as started immediately
+    isPaymentStarted.current = true;
+    console.log("PaymentModal mounted with data:", paymentData);
 
-  const initiatePayment = () => {
-    try {
-      const payment = {
-        sandbox: paymentData.payhereMode === "sandbox",
-        merchant_id: paymentData.merchant_id,
-        return_url: paymentData.return_url,
-        cancel_url: paymentData.cancel_url,
-        notify_url: paymentData.notify_url,
-        order_id: paymentData.order_id,
-        items: paymentData.items,
-        amount: paymentData.amount,
-        currency: paymentData.currency,
-        first_name: paymentData.first_name,
-        last_name: paymentData.last_name,
-        email: paymentData.email,
-        phone: paymentData.phone,
-        address: paymentData.address,
-        city: paymentData.city,
-        country: paymentData.country,
-        hash: paymentData.hash,
-        custom_1: paymentData.custom_1,
-        custom_2: paymentData.custom_2,
-      };
+    const loadPayHereScript = () => {
+      return new Promise((resolve, reject) => {
+        // Check if window.payhere exists
+        if (window.payhere) {
+          console.log("PayHere SDK already loaded");
+          resolve();
+          return;
+        }
 
-      console.log("Payment object prepared:", payment);
+        // Check if script tag already exists in DOM (to prevent duplicates)
+        const existingScript = document.querySelector('script[src*="payhere.js"]');
+        if (existingScript) {
+           console.log("PayHere script tag found, waiting for load...");
+           existingScript.addEventListener('load', () => resolve());
+           return;
+        }
 
-      window.payhere.onCompleted = function onCompleted(orderId) {
-        console.log("Payment completed. OrderID:" + orderId);
-        onSuccess(orderId);
-      };
+        console.log("Loading PayHere SDK...");
+        const script = document.createElement('script');
+        script.src = paymentData.sandbox 
+          ? 'https://sandbox.payhere.lk/lib/payhere.js'
+          : 'https://www.payhere.lk/lib/payhere.js';
+        script.async = true;
+        script.onload = () => {
+          console.log("PayHere SDK loaded successfully");
+          resolve();
+        };
+        script.onerror = () => {
+          console.error("Failed to load PayHere SDK");
+          reject(new Error('Failed to load PayHere SDK'));
+        };
+        document.head.appendChild(script);
+      });
+    };
 
-      window.payhere.onDismissed = function onDismissed() {
-        console.log("Payment dismissed");
-        onDismiss();
-      };
+    const initiatePayment = async () => {
+      try {
+        await loadPayHereScript();
 
-      window.payhere.onError = function onError(error) {
-        console.log("Error:" + error);
-        onErr(error);
-      };
-      console.log("Starting PayHere payment...");
-      window.payhere.startPayment(payment);
-    } catch (error) {
-      console.error("Error initiating payment:", error);
-      onErr(error.message || "Failed to initiate payment");
-    }
-  };
+        // Safety check to ensure SDK is actually available
+        if (!window.payhere) {
+            throw new Error("PayHere SDK loaded but window.payhere is undefined");
+        }
+
+        // Prepare payment object
+        const payment = {
+          sandbox: paymentData.sandbox,
+          merchant_id: paymentData.merchant_id,
+          return_url: paymentData.return_url || "", // Fallback to empty string
+          cancel_url: paymentData.cancel_url || "", // Fallback to empty string
+          notify_url: paymentData.notify_url,
+          order_id: paymentData.order_id,
+          items: paymentData.items,
+          amount: paymentData.amount,
+          currency: paymentData.currency,
+          first_name: paymentData.first_name,
+          last_name: paymentData.last_name,
+          email: paymentData.email,
+          phone: paymentData.phone,
+          address: paymentData.address,
+          city: paymentData.city,
+          country: paymentData.country,
+          hash: paymentData.hash,
+          custom_1: paymentData.custom_1,
+          custom_2: paymentData.custom_2,
+        };
+
+        // Set up event handlers
+        window.payhere.onCompleted = function(orderId) {
+          console.log("Payment completed. OrderID:", orderId);
+          onSuccess(orderId);
+        };
+
+        window.payhere.onDismissed = function() {
+          console.log("Payment dismissed by user");
+          onDismiss();
+        };
+
+        window.payhere.onError = function(error) {
+          console.error("Payment error:", error);
+          onError(error);
+        };
+
+        console.log("Starting PayHere payment...");
+        window.payhere.startPayment(payment);
+
+      } catch (error) {
+        console.error("Error initiating payment:", error);
+        onError(error.message || "Failed to initiate payment");
+      }
+    };
+
+    initiatePayment();
+
+    // Cleanup function
+    return () => {
+       // Optional: You can try to remove handlers, but PayHere is global
+       // window.payhere.onCompleted = null;
+    };
+  }, [paymentData]); // Keep dependency array simple
 
   return null;
 }

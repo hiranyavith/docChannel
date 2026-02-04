@@ -8,6 +8,8 @@ import UserProfile from "./pages/UserProfile";
 import ProfileComplete from "./pages/ProfileComplete";
 import PaymentSuccess from "./components/DocBookReuseCom/PaymentSuccess";
 import PaymentCancel from "./components/DocBookReuseCom/PaymentCancel";
+import AdminPanel from "./pages/AdminPanel";
+import AdminSignIn from "./pages/adminSignIn";
 
 function App() {
   return (
@@ -22,6 +24,10 @@ function App() {
           <Route path="/profile-complete" element={<ProfileComplete />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/payment-cancel" element={<PaymentCancel />} />
+          {/* <Route path="/admin-panel" element={<AdminPanel />} /> */}
+
+           <Route path="/admin-panel/*" element={<AdminPanel />} />
+           <Route path="/admin" element={<AdminSignIn />} />
         </Routes>
         {/* <SignUp/> */}
         {/* <DoctorList/> */}
