@@ -21,7 +21,7 @@ function PaymentSuccess() {
   const verifyPayment = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/appointments/verify-payment/${orderId}`,
+        `${import.meta.env.VITE_API_URL}/api/appointments/verify-payment/${orderId}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }

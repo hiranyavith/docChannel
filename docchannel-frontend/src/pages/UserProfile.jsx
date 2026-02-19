@@ -54,7 +54,7 @@ function UserProfile() {
         setError("User Information not availbale");
         return;
       }
-      const response = await fetch("http://localhost:5000/api/user/profile", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/user/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -102,7 +102,7 @@ function UserProfile() {
     try {
       setIsLoadingAppointments(true);
       const response = await axios.get(
-        "http://localhost:5000/api/appointments/user-appointments",
+        `${import.meta.env.VITE_API_URL}/api/appointments/user-appointments`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -136,7 +136,7 @@ function UserProfile() {
     formData.append("image", file);
     try {
       const response = await axios.put(
-        "http://localhost:5000/api/user/update-profile-image",
+        `${import.meta.env.VITE_API_URL}/api/user/update-profile-image`,
         formData,
         {
           headers: {

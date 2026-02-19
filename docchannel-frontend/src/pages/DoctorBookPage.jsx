@@ -44,7 +44,7 @@ function DoctorBookPage() {
 
       console.log("Fetching booking details:", { doctorId, scheduleId });
       const response = await axios.get(
-        "http://localhost:5000/api/appointments/booking-details",
+        `${import.meta.env.VITE_API_URL}/api/appointments/booking-details`,
         {
           params: { doctorId, scheduleId },
           headers: { Authorization: `Bearer ${token}` },

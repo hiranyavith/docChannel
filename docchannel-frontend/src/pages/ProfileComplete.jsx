@@ -125,7 +125,7 @@ function ProfileComplete() {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/user/complete-profile",
+        `${import.meta.env.VITE_API_URL}/api/user/complete-profile`,
         {
           method: "POST",
           headers: {
@@ -172,7 +172,7 @@ function ProfileComplete() {
   const sendOtpToEmail = async () => {
     try {
       const response = await fetch(
-        "http://localhost:5000/api/user/send-verification-otp",
+        `${import.meta.env.VITE_API_URL}/api/user/send-verification-otp`,
         {
           method: "POST",
           headers: {
@@ -232,7 +232,7 @@ function ProfileComplete() {
     setOtpError("");
     try {
       const response = await fetch(
-        "http://localhost:5000/api/user/verify-account",
+        `${import.meta.env.VITE_API_URL}/api/user/verify-account`,
         {
           method: "POST",
           headers: {
@@ -377,6 +377,7 @@ function ProfileComplete() {
                         onChange={handleInputChange}
                         className="bg-[#D9D9D9] p-2 rounded-lg font-nunito font-medium focus:outline-none w-20"
                         placeholder="+94"
+                        readOnly
                       />
                       <input
                         type="text"

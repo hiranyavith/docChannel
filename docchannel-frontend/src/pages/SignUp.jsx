@@ -7,7 +7,9 @@ import HeaderDocChannel from "../components/HeaderDocChannel/HeaderDocChannel";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
+
 function SignUp() {
+  
   const navigate = useNavigate();
   const { login } = useAuth();
   const [isSignIn, setIsSignIn] = useState(true);
@@ -88,7 +90,7 @@ function SignUp() {
 
   const handleSignUp = async (userData) => {
     try {
-      const response = await fetch("http://localhost:5000/api/auth/register", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -140,7 +142,7 @@ function SignUp() {
 
   const handleSIgnIn = async (credentials) => {
     try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -181,7 +183,7 @@ function SignUp() {
   };
 
   // const handleGoogle = async() =>{
-  //   window.location.href = "http://localhost:5000/google"
+  //   window.location.href = "google"
   // }
 
   const handleSubmit = async (e) => {

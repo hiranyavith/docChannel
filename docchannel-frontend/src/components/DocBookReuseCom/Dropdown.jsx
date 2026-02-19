@@ -5,7 +5,7 @@ function Dropdown({ label, type, value, OnChange, disabled = false }) {
   const [options, setOptions] = useState([]);
 
   useEffect(() => {
-    let url = `http://localhost:5000/api/dropdowns/${type}`;
+    let url = `${import.meta.env.VITE_API_URL}/api/dropdowns/${type}`;
     axios.get(url).then((res) => setOptions(res.data));
   }, [type]);
   return (
