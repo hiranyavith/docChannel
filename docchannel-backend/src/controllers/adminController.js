@@ -1,6 +1,9 @@
 const db = require("../config/db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
+const Doctor = require("../models/Doctor");
+// const { stat } = require("original-fs");
 
 // // Get all users
 // exports.getAllUsers = async (req, res) => {
@@ -445,5 +448,219 @@ exports.adminLogin = async (req, res) => {
   } catch (error) {
     console.error("Error during admin login:", error);
     res.status(500).json({ message: "Server error during admin login" });
+  }
+};
+
+exports.GetStatics = async (req, res) => {
+  try {
+    const [statsResults] = await db.execute(`SELECT 
+(
+    SELECT COUNT(*) 
+    FROM users u
+    WHERE MONTH(u.created_At) = MONTH(CURRENT_DATE())
+    AND YEAR(u.created_At) = YEAR(CURRENT_DATE())
+) AS userCount,
+
+(
+    SELECT COUNT(*) 
+    FROM appointment a
+    WHERE MONTH(a.created_At) = MONTH(CURRENT_DATE())
+    AND YEAR(a.created_At) = YEAR(CURRENT_DATE())
+) AS appointmentCount`);
+
+    res.json({
+      success: true,
+      data: statsResults[0],
+    });
+  } catch (error) {
+    console.error("Error fetching static data:", error);
+    res.status(500).json({ message: "Failed to retrieve static data" });
+  }
+};
+
+exports.getRecentAppointments = async (req, res) => {
+  try {
+    const [appointments] =
+      await db.execute(`SELECT a.appointment_id,a.orderId, a.updateAt,a.created_At,a.payment_status, a.appointmnetStatus, u.f_name, u.l_name,du.f_name AS doctor_fname,du.l_name AS doctorlname,
+ u.email
+FROM appointment a
+JOIN patients p ON a.patients_patient_id = p.patient_id
+JOIN users u ON p.users_user_id = u.user_id
+JOIN doctor d ON a.doctor_doctor_id = d.doctor_id
+JOIN users du ON d.users_user_id = du.user_id
+ORDER BY a.created_At DESC
+LIMIT 5`);
+    res.json({
+      success: true,
+      data: appointments,
+    });
+  } catch (error) {
+    console.error("Error fetching recent appointments:", error);
+    res.status(500).json({ message: "Failed to retrieve recent appointments" });
+  }
+};
+
+exports.getUserStatics = async (req, res) => {
+  try {
+    const stats = await User.getStats();
+    res.json({
+      success: true,
+      data: stats,
+    });
+  } catch (error) {
+    console.error("Error fetching user statistics:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching user statistics",
+      error: error.message,
+    });
+  }
+};
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    const { search, role, status } = req.query;
+
+    const users = await User.findAll({ search, role, status });
+
+    res.json({
+      success: true,
+      count: users.length,
+      data: users,
+    });
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching users",
+      error: error.message,
+    });
+  }
+};
+
+exports.updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      first_name,
+      s_name,
+      last_name,
+      email,
+      role,
+      mobile_number,
+      nic_no,
+      isVerified,
+      Status_Type,
+    } = req.body;
+
+    await db.execute(
+      `
+      UPDATE users u 
+      JOIN role r ON r.role_type = ?
+      JOIN status st ON st.status_type = ?
+SET 
+u.f_name = ?, 
+u.l_name = ?, 
+u.s_name = ?, 
+u.email = ? , 
+u.role_role_id = r.role_id, 
+u.status_status_id = st.status_id,
+u.mobile = ?, 
+u.nic_no = ?,
+u.isVerified = ?,
+u.update_At = NOW()
+WHERE u.user_id = ?
+      `,
+      [
+        role ?? null,
+        Status_Type ?? null,
+        first_name ?? null,
+        last_name ?? null,
+        s_name ?? null,
+        email ?? null,
+        mobile_number ?? null,
+        nic_no ?? null,
+        isVerified ? 1 : 0,
+        id,
+      ],
+    );
+
+    res.json({
+      success: true,
+      message: "User updated successfully",
+    });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error updating user",
+      error: error.message,
+    });
+  }
+};
+
+exports.getDoctorStatics = async (req, res) => {
+  try {
+    const [[stats]] = await db.execute(`
+      SELECT
+        COUNT(*)                                          AS totalDoctors,
+        SUM(CASE WHEN u.status_status_id = 
+            (SELECT status_id FROM status WHERE status_type = 'Active') 
+            THEN 1 ELSE 0 END)                           AS activeDoctors,
+            SUM(CASE WHEN u.status_status_id = 
+            (SELECT status_id FROM status WHERE status_type = 'Inactive') 
+            THEN 1 ELSE 0 END)                           AS inactiveDoctors,
+        COUNT(DISTINCT d.specialization_specialization_id)                 AS totalSpecialties
+      FROM users u
+      JOIN role r ON u.role_role_id = r.role_id
+      JOIN doctor d ON u.user_id = d.users_user_id
+      WHERE r.role_type = 'Doctor'
+      `);
+    res.json({
+      success: true,
+      data: stats,
+    });
+  } catch (error) {
+    console.error("Error fetching doctor statistics:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching doctor statistics",
+      error: error.message,
+    });
+  }
+};
+
+exports.getAllDoctors = async (req, res) => {
+  try {
+    const { search, specialty, status } = req.query;
+    const doctors = await Doctor.findAll({ search, specialty, status });
+    res.json({
+      success: true,
+      count: doctors.length,
+      data: doctors,
+    });
+  } catch (error) {
+    console.error("Error fetching doctor list:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching doctor list",
+      error: error.message,
+    });
+  }
+};
+
+exports.getDoctorSpecializations = async (req, res) => {
+  try {
+    const [rows] = await db.execute("SELECT specialization_id AS id, speciality_type AS name FROM specialization ORDER BY specialization_id ASC");
+    res.json({
+      success: true,
+      data: rows,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching specializations",
+      error: error.message,
+    });
   }
 };

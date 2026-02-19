@@ -12,6 +12,7 @@ const dropdownRoutes = require("./src/routes/dropdownRoutes");
 const app = express();
 
 app.use(cors());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // Serve static uploads

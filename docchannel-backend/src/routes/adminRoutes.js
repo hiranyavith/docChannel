@@ -1,15 +1,33 @@
 const express = require("express");
 const {
-    getAllUsers, addUser, editUser, changeUserRole,
-    getDefaultSlots, addDefaultSlot, deleteDefaultSlot,
-    addSpecificSlot, deleteSpecificSlot, getAllAppointments,
-    cancelAppointmentAdmin,
-    updateAppointmentStatus, getUserCounts,
-    bookAppointmentAdmin, getBookingTrend, getPopularTimeSlots, getAppointmentInsights,
-    updateUserActiveStatus,
-    activeDefaultSlot,
-    adminLogin,
-
+  getAllUsers,
+  addUser,
+  editUser,
+  changeUserRole,
+  getDefaultSlots,
+  addDefaultSlot,
+  deleteDefaultSlot,
+  addSpecificSlot,
+  deleteSpecificSlot,
+  getAllAppointments,
+  cancelAppointmentAdmin,
+  updateAppointmentStatus,
+  getUserCounts,
+  bookAppointmentAdmin,
+  getBookingTrend,
+  getPopularTimeSlots,
+  getAppointmentInsights,
+  updateUserActiveStatus,
+  activeDefaultSlot,
+  adminLogin,
+  GetStatics,
+  getRecentAppointments,
+  getUserStatics,
+  updateUser,
+  getDoctorStatics,
+  getAllDoctors,
+  getSpecializations,
+  getDoctorSpecializations,
 } = require("../controllers/adminController");
 const { authenticateUser } = require("../middleware/authMiddleware");
 const { isAdmin } = require("../middleware/roleMiddleware");
@@ -31,7 +49,6 @@ const router = express.Router();
 // router.delete("/slots/specific/:id", authenticateUser, isAdmin, deleteSpecificSlot);
 // router.put("/slots/:id/active", authenticateUser, isAdmin, activeDefaultSlot);
 
-
 // Appointment Management Routes
 // router.get("/appointments", authenticateUser, isAdmin, getAllAppointments);
 // router.put("/appointments/:id/cancel", authenticateUser, isAdmin, cancelAppointmentAdmin);
@@ -47,5 +64,13 @@ const router = express.Router();
 // Appointment Insights Route
 // router.get('/appointment-insights', authenticateUser, isAdmin, getAppointmentInsights);
 
-router.get('/loginadmin', adminLogin);
+router.post("/loginadmin", adminLogin);
+router.get("/stats", GetStatics);
+router.get("/recentappointments", getRecentAppointments);
+router.get("/userstats", getUserStatics);
+router.get("/allusers", getAllUsers);
+router.put("/updateuser/:id",updateUser)
+router.get("/doctorstats", getDoctorStatics);
+router.get('/getalldoctors', getAllDoctors)
+router.get('/specializations', getDoctorSpecializations)
 module.exports = router;

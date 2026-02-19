@@ -20,7 +20,7 @@ function DoctorSearchMain() {
   const fetchSpecializations = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:5000/api/appointments/specializations",
+        `${import.meta.env.VITE_API_URL}/api/appointments/specializations`,
       );
       if (response.data.success) {
         setSpecialization(response.data.specialization);

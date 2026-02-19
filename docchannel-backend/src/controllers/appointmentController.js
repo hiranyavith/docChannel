@@ -3,6 +3,7 @@ const User = require("../models/User");
 const crypto = require("crypto");
 
 const sendEmail = require("../utils/emailService");
+const generatePaymentReceiptHTML = require("../emailTemplates/paymentReceipt");
 
 const PAYHERE_MERCHANT_ID = process.env.PAYHERE_MERCHANT_ID;
 const PAYHERE_MERCHANT_SECRET = process.env.PAYHERE_MERCHANT_SECRET;
@@ -765,7 +766,7 @@ exports.paymentNotify = async (req, res) => {
       await db.execute(
         `UPDATE appointment 
          SET appointmnetStatus = 'confirmed', 
-             updateAt = NOW()
+             updateAt = NOW(),payment_status = 'payHere'
          WHERE appointment_id = ? AND orderId = ?`,
         [appointmentId, order_id],
       );
@@ -777,6 +778,58 @@ exports.paymentNotify = async (req, res) => {
       );
 
       console.log(`Payment successful for appointment ${appointmentId}`);
+
+      const [appointmentDetails] = await db.execute(
+        `SELECT 
+  a.*, 
+  u.f_name AS patient_first_name, 
+  u.l_name AS patient_last_name,
+  u.email AS patient_email,
+  du.f_name AS doctor_first_name,
+  du.l_name AS doctor_last_name,
+  du.initial_with_name AS doctor_name,
+  dshdow.appointmentDate AS appointmentDate,
+  dshdow.starting_time AS appointmentStartTime,
+  dshdow.end_time AS appointmentEndTime
+FROM appointment a 
+JOIN patients p ON a.patients_patient_id = p.patient_id
+JOIN users u ON p.users_user_id = u.user_id
+JOIN doctor d ON a.doctor_doctor_id = d.doctor_id
+JOIN users du ON d.users_user_id = du.user_id 
+JOIN doctor_scheduler_has_days_of_week dshdow ON a.doctor_scheduler_scheduler_id = dshdow.doctor_scheduler_scheduler_id
+WHERE a.appointment_id = ?`,
+        [appointmentId],
+      );
+
+      if (appointmentDetails.length > 0) {
+        const appointment = appointmentDetails[0];
+
+        const receiptData = {
+          email: appointment.patient_email,
+          firstName: appointment.patient_first_name,
+          lastName: appointment.patient_last_name,
+          doctorName:
+            appointment.doctor_first_name + " " + appointment.doctor_last_name,
+          appointmentId: appointmentId,
+          orderId: order_id,
+          paymentId: payment_id,
+          amount: payhere_amount,
+          currency: payhere_currency,
+          paymentMethod: method,
+          appointmentDate: appointment.appointmentDate,
+          appointmentTime: `${appointment.appointmentStartTime} - ${appointment.appointmentEndTime}`,
+          transactionDate: appointment.updateAt,
+        };
+
+        const htmlContent = generatePaymentReceiptHTML(receiptData);
+
+        await sendEmail(
+          receiptData.email,
+          "Payment Receipt For Your Appointment with Dr. " +
+            receiptData.doctorName,
+          htmlContent,
+        );
+      }
     } else if (status_code === "0") {
       // Payment pending
       await db.execute(

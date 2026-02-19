@@ -92,6 +92,55 @@ class User {
     );
     return rows.length > 0 ? rows[0].patient_id : null;
   }
+
+  static async getStats() {
+    const [totalUsers] = await db.query("SELECT COUNT(*) as count FROM users");
+    const [activeUsers] = await db.query(
+      'SELECT COUNT(*) as count FROM users u JOIN status sts ON u.status_status_id = sts.status_id WHERE sts.status_type = "Active"',
+    );
+    const [verifiedUsers] = await db.query(
+      "SELECT COUNT(*) as count FROM users u WHERE u.isVerified = 1",
+    );
+    const [roleStats] = await db.query(
+      "SELECT rl.role_type, COUNT(*) as count FROM users u JOIN role rl ON u.role_role_id = rl.role_id GROUP BY role_role_id",
+    );
+
+    return {
+      totalUsers: totalUsers[0].count,
+      activeUsers: activeUsers[0].count,
+      inactiveUsers: totalUsers[0].count - activeUsers[0].count,
+      verifiedUsers: verifiedUsers[0].count,
+      unverifiedUsers: totalUsers[0].count - verifiedUsers[0].count,
+      roleBreakdown: roleStats.reduce((acc, curr) => {
+        acc[curr.role_type] = curr.count;
+        return acc;
+      }, {}),
+    };
+  }
+
+  static async findAll(filters = {}) {
+   let query = `SELECT u.user_id AS id,u.f_name AS first_name,u.s_name,u.l_name AS last_name,u.email AS email,rl.role_type AS role,u.mobile AS mobile_number,u.nic_no AS nic_no,u.isVerified,DATE_FORMAT(u.created_At, "%Y-%m-%d") AS joined,CONCAT(LEFT(u.f_name,1), LEFT(u.l_name,1)) AS avatar,st.status_type AS Status_Type  FROM users u JOIN role rl ON u.role_role_id = rl.role_id JOIN status st ON u.status_status_id = st.status_id WHERE 1=1 `;
+    const params = [];
+  
+    if (filters.search) {
+      query += ` AND (u.f_name LIKE ? OR u.l_name LIKE ? OR u.email LIKE ?) ORDER BY u.created_At ASC`;
+      const searchTerm = `%${filters.search}%`;
+      params.push(searchTerm, searchTerm, searchTerm);
+    }
+  
+    if (filters.role && filters.role !== "All") {
+      query += ` AND rl.role_type = ? ORDER BY u.created_At ASC `;
+      params.push(filters.role);
+    }
+  
+    if (filters.Status_Type && filters.Status_Type !== "All") {
+      query += ` AND u.status_status_id = (SELECT status_id FROM status WHERE status_type = ?) ORDER BY u.created_At ASC`;
+      params.push(filters.Status_Type);
+    }
+  
+    const [rows] = await db.execute(query, params);
+    return rows;
+  }
 }
 
 module.exports = User;

@@ -58,7 +58,7 @@ function BookingForm({ scheduleId, doctorId }) {
       console.log("Initiating payment...");
       const response = await axios.post(
         // "http://localhost:5000/api/appointments/create",
-        "http://localhost:5000/api/appointments/initiate-payment",
+        `${import.meta.env.VITE_API_URL}/api/appointments/initiate-payment`,
         {
           scheduleId,
           doctorId,
@@ -91,7 +91,7 @@ function BookingForm({ scheduleId, doctorId }) {
     try {
       // Verify payment status
       const response = await axios.get(
-        `http://localhost:5000/api/appointments/verify-payment/${orderId}`,
+        `${import.meta.env.VITE_API_URL}/api/appointments/verify-payment/${orderId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },

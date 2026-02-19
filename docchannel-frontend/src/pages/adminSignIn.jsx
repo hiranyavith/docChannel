@@ -27,7 +27,7 @@ function AdminSignIn() {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/admin/loginadmin",
+        `${import.meta.env.VITE_API_URL}/api/admin/loginadmin`,
         {
           method: "POST",
           headers: {
@@ -37,8 +37,8 @@ function AdminSignIn() {
         },
       );
       const data = await response.json();
-      const text = await response.text();
-      console.log(text);
+      // const text = await response.text();
+      console.log(data);
 
       if (!response.ok) {
         setError(data.message || "Login failed");
