@@ -10,12 +10,18 @@ class Doctor {
       u.l_name        AS last_name,
       u.email         AS email,
       u.mobile        AS phone,
+      u.nic_no AS nic,
       spec.speciality_type AS specialty,
       d.years_in_experience    AS experience,
       d.isActive AS availability,
       d.slmc_number     AS slmc_number,
       d.specialNote     AS Note,
+      d.consultation_fee AS Fee,
       st.status_type  AS status,
+      ua.address AS address,
+      p.province_name,
+      ad.district_name,
+      ac.city_name,
       DATE_FORMAT(u.created_At, "%Y-%m-%d") AS joined,
       CONCAT(LEFT(u.f_name,1), LEFT(u.l_name,1)) AS avatar
     FROM users u
@@ -23,6 +29,10 @@ class Doctor {
     JOIN doctor d     ON u.user_id = d.users_user_id
     JOIN specialization spec ON d.specialization_specialization_id = spec.specialization_id
     JOIN status st     ON u.status_status_id = st.status_id
+    JOIN user_address ua ON u.user_address_id = ua.iduser_address
+    JOIN province p ON ua.province_province_id = p.province_id
+    JOIN district ad ON ad.district_id = ua.district_district_id
+    JOIN city ac ON ac.city_id = ua.city_city_id
     WHERE r.role_type = 'Doctor'
     `;
 

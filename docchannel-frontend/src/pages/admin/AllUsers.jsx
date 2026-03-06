@@ -56,8 +56,8 @@ const AllUsers = () => {
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
-      user.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase());
+      user.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = roleFilter === "All" || user.role === roleFilter;
     const matchesStatus =
       statusFilter === "All" || user.status === statusFilter;

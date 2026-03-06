@@ -28,6 +28,12 @@ const {
   getAllDoctors,
   getSpecializations,
   getDoctorSpecializations,
+  getStatus,
+  getProvice,
+  getDistrict,
+  getCity,
+  addDoctor,
+  updatedoctor,
 } = require("../controllers/adminController");
 const { authenticateUser } = require("../middleware/authMiddleware");
 const { isAdmin } = require("../middleware/roleMiddleware");
@@ -69,8 +75,14 @@ router.get("/stats", GetStatics);
 router.get("/recentappointments", getRecentAppointments);
 router.get("/userstats", getUserStatics);
 router.get("/allusers", getAllUsers);
-router.put("/updateuser/:id",updateUser)
+router.put("/updateuser/:id", updateUser);
 router.get("/doctorstats", getDoctorStatics);
-router.get('/getalldoctors', getAllDoctors)
-router.get('/specializations', getDoctorSpecializations)
+router.get("/getalldoctors", getAllDoctors);
+router.get("/specializations", getDoctorSpecializations);
+router.get("/getstatus", getStatus);
+router.get("/getprovince", getProvice);
+router.get("/getdistrict", getDistrict);
+router.get("/getcity", getCity);
+router.post("/adddoctor", addDoctor);
+router.put("/updatedoctor/:id", updatedoctor );
 module.exports = router;
