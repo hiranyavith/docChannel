@@ -35,23 +35,23 @@ function AdminPanel() {
       label: "Appointments",
       icon: IoBarChart,
       path: "/appointments",
-    },
-    {
-      id: "content",
-      label: "Content",
-      icon: FiFileText,
-      submenu: [
-        { id: "posts", label: "Posts", path: "/content/posts" },
-        { id: "pages", label: "Pages", path: "/content/pages" },
-        { id: "media", label: "Media", path: "/content/media" },
-      ],
-    },
-    {
-      id: "products",
-      label: "Products",
-      icon: GoPackage,
-      path: "/products",
-    },
+    }
+    // {
+    //   id: "content",
+    //   label: "Content",
+    //   icon: FiFileText,
+    //   submenu: [
+    //     { id: "posts", label: "Posts", path: "/content/posts" },
+    //     { id: "pages", label: "Pages", path: "/content/pages" },
+    //     { id: "media", label: "Media", path: "/content/media" },
+    //   ],
+    // },
+    // {
+    //   id: "products",
+    //   label: "Products",
+    //   icon: GoPackage,
+    //   path: "/products",
+    // },
   ];
 
   //   const handleMenuItemClick = (item) => {

@@ -93,6 +93,215 @@ const inputCls =
   "w-full px-4 py-2.5 rounded-xl border-2 border-slate-200 outline-none text-sm text-slate-700 font-medium focus:border-emerald-400 focus:shadow-[0_0_0_3px_rgba(16,185,129,0.1)] transition-all";
 const selectCls = inputCls + " cursor-pointer bg-white";
 
+// ── Move DoctorForm OUTSIDE DoctorManage ─────────────────────────
+// Pass everything it needs as props instead
+const DoctorForm = ({
+  onSubmit,
+  submitLabel,
+  formData,
+  formError,
+  setField,
+  specializations,
+  provice,
+  district,
+  city,
+  status,
+  onCancel,
+}) => (
+  <div className="p-5 sm:p-7">
+    <div className="space-y-4">
+      {formError && (
+        <div className="bg-rose-50 border border-rose-200 text-rose-600 text-sm font-semibold px-4 py-3 rounded-xl">
+          {formError}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Field label="Full Name *">
+          <input
+            className={inputCls}
+            value={formData.name}
+            onChange={(e) => setField("name", e.target.value)}
+            placeholder="Dr. John Smith"
+          />
+        </Field>
+        <Field label="Specialty *">
+          <select
+            className={selectCls}
+            value={formData.specialty}
+            onChange={(e) => setField("specialty", e.target.value)}
+          >
+            <option value="">Select Specialty</option>
+            {specializations.map((s) => (
+              <option key={s.id} value={s.name}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Field label="Email *">
+          <input
+            className={inputCls}
+            type="email"
+            value={formData.email}
+            onChange={(e) => setField("email", e.target.value)}
+            placeholder="doctor@hospital.com"
+          />
+        </Field>
+        <Field label="Phone *">
+          <input
+            className={inputCls}
+            type="tel"
+            value={formData.phone}
+            onChange={(e) => setField("phone", e.target.value)}
+            placeholder="+1 (555) 000-0000"
+          />
+        </Field>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Field label="NIC *">
+          <input
+            className={inputCls}
+            value={formData.nic ?? ""}
+            onChange={(e) => setField("nic", e.target.value)}
+            placeholder="20013360****"
+          />
+        </Field>
+        <Field label="Address *">
+          <input
+            className={inputCls}
+            value={formData.address ?? ""}
+            onChange={(e) => setField("address", e.target.value)}
+            placeholder="Enter Address Here"
+          />
+        </Field>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Field label="Province *">
+          <select
+            className={selectCls}
+            value={formData.province_name ?? ""}
+            onChange={(e) => setField("province_name", e.target.value)}
+          >
+            <option value="">Select Province</option>
+            {provice.map((s) => (
+              <option key={s.id} value={s.name}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="District *">
+          <select
+            className={selectCls}
+            value={formData.district_name ?? ""}
+            onChange={(e) => setField("district_name", e.target.value)}
+          >
+            <option value="">Select District</option>
+            {district.map((s) => (
+              <option key={s.id} value={s.name}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="City *">
+          <select
+            className={selectCls}
+            value={formData.city_name ?? ""}
+            onChange={(e) => setField("city_name", e.target.value)}
+          >
+            <option value="">Select City</option>
+            {city.map((s) => (
+              <option key={s.id} value={s.name}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Note">
+          <input
+            className={inputCls}
+            value={formData.Note ?? ""}
+            onChange={(e) => setField("Note", e.target.value)}
+            placeholder="Doctor Note"
+          />
+        </Field>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Field label="Experience *">
+          <input
+            className={inputCls}
+            value={formData.experience ?? ""}
+            onChange={(e) => setField("experience", e.target.value)}
+            placeholder="10 years"
+          />
+        </Field>
+        <Field label="SLMC Number *">
+          <input
+            className={inputCls}
+            value={formData.slmc_number ?? ""}
+            onChange={(e) => setField("slmc_number", e.target.value)}
+            placeholder="SLMC-12345"
+          />
+        </Field>
+        <Field label="Consultation Fee (Rs.) *">
+          <input
+            className={inputCls}
+            value={formData.Fee ?? ""}
+            onChange={(e) => setField("Fee", e.target.value)}
+            placeholder="1,000.00"
+          />
+        </Field>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Field label="Status">
+          <select
+            className={selectCls}
+            value={formData.status ?? ""}
+            onChange={(e) => setField("status", e.target.value)}
+          >
+            {status.map((s) => (
+              <option key={s.id} value={s.name}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Availability">
+          <input
+            className={inputCls}
+            value={formData.availability == 1 ? "Available" : "Not Available"}
+            readOnly
+          />
+        </Field>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-3 pt-2">
+        <button
+          onClick={onSubmit}
+          className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold py-3 rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all shadow-md"
+        >
+          {submitLabel}
+        </button>
+        <button
+          onClick={onCancel}
+          className="flex-1 bg-slate-100 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-200 transition-all"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
 // ── Main Component ────────────────────────────────────────────────────────────
 const DoctorManage = () => {
   const [viewMode, setViewMode] = useState("grid");
@@ -109,7 +318,10 @@ const DoctorManage = () => {
   const [formData, setFormData] = useState(EMPTY_DOCTOR);
   const [formError, setFormError] = useState("");
   const [specializations, setSpecializations] = useState([]);
-
+  const [provice, setProvince] = useState([]);
+  const [district, setDistrict] = useState([]);
+  const [city, setCity] = useState([]);
+  const [status, setStatus] = useState([]);
   const [doctors, setDoctors] = useState([]);
 
   const [doctorStats, setDoctorStats] = useState({
@@ -164,12 +376,69 @@ const DoctorManage = () => {
     }
   };
 
+  const getProvice = async () => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/admin/getprovince`,
+      );
+      const data = await response.json();
+      console.log("Province:", data.data);
+      setProvince(data.data ?? []);
+    } catch (error) {
+      console.error("Error fetching Province:", error);
+    }
+  };
+
+  const getDistrict = async () => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/admin/getdistrict`,
+      );
+      const data = await response.json();
+      console.log("District:", data.data);
+      setDistrict(data.data ?? []);
+    } catch (error) {
+      console.error("Error fetching District:", error);
+    }
+  };
+
+  const getCity = async () => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/admin/getcity`,
+      );
+      const data = await response.json();
+      console.log("City:", data.data);
+      setCity(data.data ?? []);
+    } catch (error) {
+      console.error("Error fetching City:", error);
+    }
+  };
+
+  const getStatus = async () => {
+    try {
+      const resp = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/admin/getstatus`,
+      );
+      const data = await resp.json();
+      console.log("Status:", data.data);
+
+      setStatus(data.data ?? []);
+    } catch (error) {
+      console.log("Error fetch status", error);
+    }
+  };
+
   useEffect(() => {
     getDoctorStats();
     getAllDoctors();
   }, [searchQuery, specialtyFilter, statusFilter]);
   useEffect(() => {
     getSpecializations();
+    getStatus();
+    getProvice();
+    getDistrict();
+    getCity();
   }, []);
   // ── Filtering ───────────────────────────────────────────────────────────────
   const filteredDoctors = doctors;
@@ -234,45 +503,92 @@ const DoctorManage = () => {
     if (!data.name.trim()) return "Name is required.";
     if (!data.email.trim()) return "Email is required.";
     if (!data.phone.trim()) return "Phone is required.";
-    if (!data.experience.trim()) return "Experience is required.";
+    // if (!data.experience.trim()) return "Experience is required.";
     return "";
   };
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     const err = validateForm(formData);
     if (err) {
       setFormError(err);
       return;
     }
-    const newDoc = {
-      ...formData,
-      id: Date.now(),
-      patients: Number(formData.patients) || 0,
-      rating: Number(formData.rating) || 5.0,
-    };
-    setDoctors((prev) => [...prev, newDoc]);
-    setShowAddModal(false);
+    // const newDoc = {
+    //   ...formData,
+    //   id: Date.now(),
+    //   patients: Number(formData.patients) || 0,
+    //   rating: Number(formData.rating) || 5.0,
+    // };
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/admin/adddoctor`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...formData,
+            patients: Number(formData.patients) || 0,
+            rating: Number(formData.rating) || 5.0,
+          }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setFormError(data.message || "Failed to add doctor");
+        return;
+      }
+      setShowAddModal(false);
+      getAllDoctors();
+    } catch (error) {
+      setFormError("Network Error", error);
+    }
+
+    // setDoctors((prev) => [...prev, newDoc]);
   };
 
-  const handleEdit = () => {
+  const handleEdit = async () => {
     const err = validateForm(formData);
     if (err) {
       setFormError(err);
       return;
     }
-    setDoctors((prev) =>
-      prev.map((d) =>
-        d.id === currentDoctor.id
-          ? {
-              ...formData,
-              id: d.id,
-              patients: Number(formData.patients) || 0,
-              rating: Number(formData.rating) || 5.0,
-            }
-          : d,
-      ),
-    );
-    setShowEditModal(false);
+    console.log(currentDoctor.id);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/admin/updatedoctor/${currentDoctor.id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        },
+      );
+      const data = await response.json();
+
+      if (!response.ok) {
+        setFormError(data.message || "Failed to update doctor");
+        return;
+      }
+      setShowEditModal(false);
+      getAllDoctors();
+      getDoctorStats();
+    } catch (error) {
+      setFormError("Network error: " + error.message);
+    }
+    // setDoctors((prev) =>
+    //   prev.map((d) =>
+    //     d.id === currentDoctor.id
+    //       ? {
+    //           ...formData,
+    //           id: d.id,
+    //           patients: Number(formData.patients) || 0,
+    //           rating: Number(formData.rating) || 5.0,
+    //         }
+    //       : d,
+    //   ),
+    // );
   };
 
   const handleDelete = () => {
@@ -285,124 +601,207 @@ const DoctorManage = () => {
     setFormData((prev) => ({ ...prev, [key]: val }));
 
   // ── Form UI (shared by Add & Edit) ─────────────────────────────────────────
-  const DoctorForm = ({ onSubmit, submitLabel }) => (
-    <div className="p-5 sm:p-7">
-      <div className="space-y-4">
-        {formError && (
-          <div className="bg-rose-50 border border-rose-200 text-rose-600 text-sm font-semibold px-4 py-3 rounded-xl">
-            {formError}
-          </div>
-        )}
+  // const DoctorForm = ({ onSubmit, submitLabel }) => (
+  //   <div className="p-5 sm:p-7">
+  //     <div className="space-y-4">
+  //       {formError && (
+  //         <div className="bg-rose-50 border border-rose-200 text-rose-600 text-sm font-semibold px-4 py-3 rounded-xl">
+  //           {formError}
+  //         </div>
+  //       )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Full Name *">
-            <input
-              className={inputCls}
-              value={formData.name}
-              onChange={(e) => setField("name", e.target.value)}
-              placeholder="Dr. John Smith"
-            />
-          </Field>
-          <Field label="Specialty *">
-            <select
-              className={selectCls}
-              value={formData.specialty}
-              onChange={(e) => setField("specialty", e.target.value)}
-            >
-              <option value="">Select Specialty</option>
-              {specializations.map((s) => (
-                <option key={s.id} value={s.name}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-        </div>
+  //       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  //         <Field label="Full Name *">
+  //           <input
+  //             className={inputCls}
+  //             value={formData.name}
+  //             onChange={(e) => setField("name", e.target.value)}
+  //             placeholder="Dr. John Smith"
+  //           />
+  //         </Field>
+  //         <Field label="Specialty *">
+  //           <select
+  //             className={selectCls}
+  //             value={formData.specialty}
+  //             onChange={(e) => setField("specialty", e.target.value)}
+  //           >
+  //             <option value="">Select Specialty</option>
+  //             {specializations.map((s) => (
+  //               <option key={s.id} value={s.name}>
+  //                 {s.name}
+  //               </option>
+  //             ))}
+  //           </select>
+  //         </Field>
+  //       </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Email *">
-            <input
-              className={inputCls}
-              type="email"
-              value={formData.email}
-              onChange={(e) => setField("email", e.target.value)}
-              placeholder="doctor@hospital.com"
-            />
-          </Field>
-          <Field label="Phone *">
-            <input
-              className={inputCls}
-              type="tel"
-              value={formData.phone}
-              onChange={(e) => setField("phone", e.target.value)}
-              placeholder="+1 (555) 000-0000"
-            />
-          </Field>
-        </div>
+  //       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  //         <Field label="Email *">
+  //           <input
+  //             className={inputCls}
+  //             type="email"
+  //             value={formData.email}
+  //             onChange={(e) => setField("email", e.target.value)}
+  //             placeholder="doctor@hospital.com"
+  //           />
+  //         </Field>
+  //         <Field label="Phone *">
+  //           <input
+  //             className={inputCls}
+  //             type="tel"
+  //             value={formData.phone}
+  //             onChange={(e) => setField("phone", e.target.value)}
+  //             placeholder="+1 (555) 000-0000"
+  //           />
+  //         </Field>
+  //       </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Experience *">
-            <input
-              className={inputCls}
-              value={formData.experience}
-              onChange={(e) => setField("experience", e.target.value)}
-              placeholder="10 years"
-            />
-          </Field>
-          <Field label="SLMC Number *">
-            <input
-              className={inputCls}
-              value={formData.slmc_number}
-              onChange={(e) => setField("slmc_number", e.target.value)}
-              placeholder="SLMC-12345"
-            />
-          </Field>
-        </div>
+  //       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  //         <Field label="Nic *">
+  //           <input
+  //             className={inputCls}
+  //             type="text"
+  //             value={formData.nic}
+  //             onChange={(e) => setField("nic", e.target.value)}
+  //             placeholder="20013360****"
+  //           />
+  //         </Field>
+  //         <Field label="Address *">
+  //           <input
+  //             className={inputCls}
+  //             type="textarea"
+  //             value={formData.address}
+  //             onChange={(e) => setField("address", e.target.value)}
+  //             placeholder="Enter Address Here"
+  //           />
+  //         </Field>
+  //       </div>
+  //       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  //         <Field label="Provice *">
+  //           <select
+  //             className={selectCls}
+  //             value={formData.province_name}
+  //             onChange={(e) => setField("province_name", e.target.value)}
+  //           >
+  //             <option value="">Select Province</option>
+  //             {provice.map((s) => (
+  //               <option key={s.id} value={s.name}>
+  //                 {s.name}
+  //               </option>
+  //             ))}
+  //           </select>
+  //         </Field>
+  //         <Field label="District *">
+  //           <select
+  //             className={selectCls}
+  //             value={formData.district_name}
+  //             onChange={(e) => setField("district_name", e.target.value)}
+  //           >
+  //             <option value="">Select District</option>
+  //             {district.map((s) => (
+  //               <option key={s.id} value={s.name}>
+  //                 {s.name}
+  //               </option>
+  //             ))}
+  //           </select>
+  //         </Field>
+  //         <Field label="City *">
+  //           <select
+  //             className={selectCls}
+  //             value={formData.city_name}
+  //             onChange={(e) => setField("city_name", e.target.value)}
+  //           >
+  //             <option value="">Select City</option>
+  //             {city.map((s) => (
+  //               <option key={s.id} value={s.name}>
+  //                 {s.name}
+  //               </option>
+  //             ))}
+  //           </select>
+  //         </Field>
+  //         <Field label="Note *">
+  //           <input
+  //             className={inputCls}
+  //             value={formData.Note ?? "N/A"}
+  //             onChange={(e) => setField("Note", e.target.value)}
+  //             placeholder="Doctor Note"
+  //           />
+  //         </Field>
+  //       </div>
+  //       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  //         <Field label="Experience *">
+  //           <input
+  //             className={inputCls}
+  //             value={formData.experience}
+  //             onChange={(e) => setField("experience", e.target.value)}
+  //             placeholder="10 years"
+  //           />
+  //         </Field>
+  //         <Field label="SLMC Number *">
+  //           <input
+  //             className={inputCls}
+  //             value={formData.slmc_number}
+  //             onChange={(e) => setField("slmc_number", e.target.value)}
+  //             placeholder="SLMC-12345"
+  //           />
+  //         </Field>
+  //         <Field label="Consultation Fee (Rs.)*">
+  //           <input
+  //             className={inputCls}
+  //             value={formData.Fee}
+  //             onChange={(e) => setField("Fee", e.target.value)}
+  //             placeholder="1,000.00"
+  //           />
+  //         </Field>
+  //       </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Status">
-            <select
-              className={selectCls}
-              value={formData.status}
-              onChange={(e) => setField("status", e.target.value)}
-            >
-              {STATUSES.map((s) => (
-                <option key={s}>{s}</option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Availability">
-            <input
-              className={inputCls}
-              value={formData.availability == 1 ? "Available" : "Not Available"}
-              onChange={(e) =>
-                setField("availability", e.target.value == "Available" ? 1 : 0)
-              }
-              placeholder="Mon–Fri, 9AM–5PM"
-            />
-          </Field>
-        </div>
+  //       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  //         <Field label="Status">
+  //           <select
+  //             className={selectCls}
+  //             value={formData.status}
+  //             onChange={(e) => setField("status", e.target.value)}
+  //           >
+  //             {status.map((s) => (
+  //               <option key={s.id} value={s.name}>
+  //                 {s.name}
+  //               </option>
+  //             ))}
+  //           </select>
+  //         </Field>
+  //         <Field label="Availability">
+  //           <input
+  //             className={inputCls}
+  //             value={formData.availability == 1 ? "Available" : "Not Available"}
+  //             onChange={(e) =>
+  //               setField("availability", e.target.value == "Available" ? 1 : 0)
+  //             }
+  //             placeholder="Mon–Fri, 9AM–5PM"
+  //             readOnly
+  //           />
+  //         </Field>
+  //       </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 pt-2">
-          <button
-            onClick={onSubmit}
-            className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold py-3 rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all shadow-md"
-          >
-            {submitLabel}
-          </button>
-          <button
-            onClick={() => {
-              setShowAddModal(false);
-              setShowEditModal(false);
-            }}
-            className="flex-1 bg-slate-100 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-200 transition-all"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  //       <div className="flex flex-col sm:flex-row gap-3 pt-2">
+  //         <button
+  //           onClick={onSubmit}
+  //           className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold py-3 rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all shadow-md"
+  //         >
+  //           {submitLabel}
+  //         </button>
+  //         <button
+  //           onClick={() => {
+  //             setShowAddModal(false);
+  //             setShowEditModal(false);
+  //           }}
+  //           className="flex-1 bg-slate-100 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-200 transition-all"
+  //         >
+  //           Cancel
+  //         </button>
+  //       </div>
+  //     </div>
+  //   </div>
+  // );
 
   // ── Doctor Card (Grid) ──────────────────────────────────────────────────────
   const DoctorCard = ({ doctor, index }) => (
@@ -1006,7 +1405,21 @@ const DoctorManage = () => {
             </svg>
           </button>
         </div>
-        <DoctorForm onSubmit={handleAdd} submitLabel="Add Doctor" />
+
+        {/* <DoctorForm onSubmit={handleAdd} submitLabel="Add Doctor" /> */}
+        <DoctorForm
+          onSubmit={handleAdd}
+          submitLabel="Add Doctor"
+          formData={formData}
+          formError={formError}
+          setField={setField}
+          specializations={specializations}
+          provice={provice}
+          district={district}
+          city={city}
+          status={status}
+          onCancel={() => setShowAddModal(false)}
+        />
       </Modal>
 
       {/* Edit Doctor */}
@@ -1041,7 +1454,20 @@ const DoctorManage = () => {
             </svg>
           </button>
         </div>
-        <DoctorForm onSubmit={handleEdit} submitLabel="Save Changes" />
+        {/* <DoctorForm onSubmit={handleEdit} submitLabel="Save Changes" /> */}
+        <DoctorForm
+          onSubmit={handleEdit}
+          submitLabel="Save Changes"
+          formData={formData}
+          formError={formError}
+          setField={setField}
+          specializations={specializations}
+          provice={provice}
+          district={district}
+          city={city}
+          status={status}
+          onCancel={() => setShowEditModal(false)}
+        />
       </Modal>
 
       {/* View Doctor */}

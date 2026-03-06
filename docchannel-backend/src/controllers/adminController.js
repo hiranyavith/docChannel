@@ -651,7 +651,9 @@ exports.getAllDoctors = async (req, res) => {
 
 exports.getDoctorSpecializations = async (req, res) => {
   try {
-    const [rows] = await db.execute("SELECT specialization_id AS id, speciality_type AS name FROM specialization ORDER BY specialization_id ASC");
+    const [rows] = await db.execute(
+      "SELECT specialization_id AS id, speciality_type AS name FROM specialization ORDER BY specialization_id ASC",
+    );
     res.json({
       success: true,
       data: rows,
@@ -662,5 +664,374 @@ exports.getDoctorSpecializations = async (req, res) => {
       message: "Error fetching specializations",
       error: error.message,
     });
+  }
+};
+
+exports.getStatus = async (req, res) => {
+  try {
+    const [rows] = await db.execute(
+      "SELECT status_id AS id, status_type AS name FROM status ORDER BY status_id ASC",
+    );
+    res.json({
+      success: true,
+      data: rows,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Error Happend when fetch status",
+      error: err.message,
+    });
+  }
+};
+
+exports.getProvice = async (req, res) => {
+  try {
+    const [rows] = await db.execute(
+      "SELECT province_id AS id, province_name AS name FROM province ORDER BY province_id ASC",
+    );
+    res.json({
+      success: true,
+      data: rows,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Error Happend when fetch province",
+      error: err.message,
+    });
+  }
+};
+
+exports.getDistrict = async (req, res) => {
+  try {
+    const [rows] = await db.execute(
+      "SELECT district_id AS id, district_name AS name FROM district ORDER BY district_id ASC",
+    );
+    res.json({
+      success: true,
+      data: rows,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Error Happend when fetch district",
+      error: err.message,
+    });
+  }
+};
+
+exports.getCity = async (req, res) => {
+  try {
+    const [rows] = await db.execute(
+      "SELECT city_id AS id, city_name AS name FROM city ORDER BY city_id ASC",
+    );
+    res.json({
+      success: true,
+      data: rows,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Error Happend when fetch city",
+      error: err.message,
+    });
+  }
+};
+
+exports.addDoctor = async (req, res) => {
+  try {
+    const {
+      name,
+      specialty,
+      email,
+      phone,
+      nic,
+      address,
+      province_name,
+      district_name,
+      city_name,
+      experience,
+      slmc_number,
+      Fee,
+      Note,
+      status = "Active",
+      availability = 1,
+      patients = 0,
+      rating = 5.0,
+    } = req.body;
+
+    if (!name || !email || !phone || !experience) {
+      return res.status(400).json({
+        message: "Name, email, phone and experience are required",
+      });
+    }
+
+    const [existingUser] = await db.execute(
+      "SELECT user_id FROM users WHERE email = ?",
+      [email],
+    );
+    if (existingUser.length > 0) {
+      return res.status(400).json({ message: "Email already exists!" });
+    }
+
+    const { firstName, middleName, lastName } = splitName(name);
+
+    const [spec_row] = await db.execute(
+      "SELECT specialization_id FROM specialization WHERE speciality_type = ?",
+      [specialty],
+    );
+
+    const spec = spec_row[0];
+
+    if (!spec) throw new Error(`Specialization "${specialty}" not found`);
+
+    const [stat_row] = await db.execute(
+      "SELECT status_id FROM status WHERE status_type = ?",
+      [status],
+    );
+
+    const stat = stat_row[0];
+
+    if (!stat) throw new Error(`Status "${status}" not found`);
+
+    const [prov_row] = await db.execute(
+      "SELECT province_id FROM province WHERE province_name = ?",
+      [province_name],
+    );
+
+    const prov = prov_row[0];
+
+    if (!prov) throw new Error(`Province "${province_name}" not found`);
+
+    const [dist_row] = await db.execute(
+      "SELECT district_id FROM district WHERE district_name = ?",
+      [district_name],
+    );
+
+    const dist = dist_row[0];
+
+    if (!dist) throw new Error(`District "${district_name}" not found`);
+
+    const [city_row] = await db.execute(
+      "SELECT city_id FROM city WHERE city_name = ?",
+      [city_name],
+    );
+
+    const city = city_row[0];
+
+    if (!city) throw new Error(`City "${city_name}" not found`);
+
+    // await db.beginTransaction();
+
+    const [addeResult] = await db.execute(
+      "INSERT INTO user_address (address,city_city_id,district_district_id,province_province_id) VALUES (?,?,?,?)",
+      [address, city.city_id, dist.district_id, prov.province_id],
+    );
+
+    const address_id = addeResult.insertId;
+
+    const [userResult] = await db.execute(
+      "INSERT INTO users (initial_with_name,f_name,s_name,l_name,email,mobile,nic_no,created_At,role_role_id,status_status_id,user_address_id) VALUES (?,?,?,?,?,?,?,NOW(),2,?,?)",
+      [
+        name,
+        firstName,
+        middleName,
+        lastName,
+        email,
+        phone,
+        nic,
+        stat.status_id,
+        address_id,
+      ],
+    );
+
+    const userId = userResult.insertId;
+
+    const [doctorResult] = await db.execute(
+      "INSERT INTO doctor (slmc_number, consultation_fee, years_in_experience, specialization_specialization_id, users_user_id, isActive, specialNote) VALUES (?,?,?,?,?,1,?)",
+      [slmc_number, Fee, experience, spec.specialization_id, userId, Note],
+    );
+
+    // await db.commit();
+    res.status(201).json({
+      message: "Doctor added successfully",
+      id: doctorResult.insertId,
+    });
+  } catch (err) {
+    // await db.rollback();
+    console.error(err);
+    res.status(500).json({ message: err.message || "Failed to add doctor" });
+  }
+};
+
+function splitName(fullName) {
+  const parts = fullName.trim().split(/\s+/);
+
+  let firstName = null;
+  let middleName = null;
+  let lastName = null;
+
+  if (parts.length === 1) {
+    firstName = parts[0];
+  } else if (parts.length === 2) {
+    firstName = parts[0];
+    lastName = parts[1];
+  } else if (parts.length === 3) {
+    firstName = parts[0];
+    middleName = parts[1];
+    lastName = parts[2];
+  } else if (parts.length > 3) {
+    firstName = parts[0];
+    middleName = parts[1];
+    lastName = parts.slice(2).join(" ");
+  }
+
+  return { firstName, middleName, lastName };
+}
+
+exports.updatedoctor = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const {
+      name,
+      specialty,
+      email,
+      phone,
+      nic,
+      address,
+      province_name,
+      district_name,
+      city_name,
+      experience,
+      slmc_number,
+      Fee,
+      Note,
+      status,
+      availability,
+    } = req.body;
+
+    const { firstName, middleName, lastName } = splitName(name);
+    if (!name || !email || !phone || !experience) {
+      return res.status(400).json({
+        message: "Name, email, phone and experience are required items",
+      });
+    }
+
+    const [doctorRows] = await db.execute(
+      `SELECT u.user_id, u.user_address_id, d.doctor_id
+       FROM users u
+       JOIN doctor d ON d.users_user_id = u.user_id
+       WHERE u.user_id = ?`,
+      [id],
+    );
+    if (doctorRows.length === 0) {
+      return res.status(404).json({ message: "Doctor not found" });
+    }
+
+    const { user_address_id, doctor_id } = doctorRows[0];
+
+    const [emailCheck] = await db.execute(
+      "SELECT user_id FROM users WHERE email = ? AND user_id != ?",
+      [email, id],
+    );
+    if (emailCheck.length > 0) {
+      return res
+        .status(400)
+        .json({ message: "Email already used by another user" });
+    }
+
+    const [spec_row] = await db.execute(
+      "SELECT specialization_id FROM specialization WHERE speciality_type = ?",
+      [specialty],
+    );
+
+    const spec = spec_row[0];
+
+    if (!spec) throw new Error(`Specialization "${specialty}" not found`);
+
+    const [stat_row] = await db.execute(
+      "SELECT status_id FROM status WHERE status_type = ?",
+      [status],
+    );
+
+    const stat = stat_row[0];
+
+    if (!stat) throw new Error(`Status "${status}" not found`);
+
+    const [prov_row] = await db.execute(
+      "SELECT province_id FROM province WHERE province_name = ?",
+      [province_name],
+    );
+
+    const prov = prov_row[0];
+
+    if (!prov) throw new Error(`Province "${province_name}" not found`);
+
+    const [dist_row] = await db.execute(
+      "SELECT district_id FROM district WHERE district_name = ?",
+      [district_name],
+    );
+
+    const dist = dist_row[0];
+
+    if (!dist) throw new Error(`District "${district_name}" not found`);
+
+    const [city_row] = await db.execute(
+      "SELECT city_id FROM city WHERE city_name = ?",
+      [city_name],
+    );
+
+    const city = city_row[0];
+
+    if (!city) throw new Error(`City "${city_name}" not found`);
+
+    let availableId = null;
+    if (availability === "Available") {
+      availableId = 1;
+    } else if ((availability === "Not Available")) {
+      availableId = 0;
+    }
+
+    await db.execute(
+      `UPDATE user_address 
+       SET address = ?, city_city_id = ?, district_district_id = ?, province_province_id = ?
+       WHERE iduser_address = ?`,
+      [
+        address,
+        city.city_id,
+        dist.district_id,
+        prov.province_id,
+        user_address_id,
+      ],
+    );
+
+    await db.execute(
+      `UPDATE users 
+       SET initial_with_name=?, f_name=?, s_name=?, l_name=?,mobile=?, nic_no=?, status_status_id=?,update_At=NOW()
+       WHERE user_id = ?`,
+      [name, firstName, middleName, lastName, phone, nic, stat.status_id, id],
+    );
+
+    await db.execute(
+      `UPDATE doctor 
+       SET slmc_number=?, consultation_fee=?, years_in_experience=?, 
+           specialization_specialization_id=?, isActive=?, specialNote=?
+       WHERE doctor_id = ?`,
+      [
+        slmc_number,
+        Fee,
+        experience,
+        spec.specialization_id,
+        availableId,
+        Note,
+        doctor_id,
+      ],
+    );
+    res.json({ message: "Doctor updated successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message || "Failed to update doctor" });
   }
 };
