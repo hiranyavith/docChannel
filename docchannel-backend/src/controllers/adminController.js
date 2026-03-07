@@ -1035,3 +1035,239 @@ exports.updatedoctor = async (req, res) => {
     res.status(500).json({ message: error.message || "Failed to update doctor" });
   }
 };
+
+exports.GetAppointmentDoctor = async (req, res) => {
+  try {
+    const { search = '', available } = req.query;
+
+    let sql = `
+     SELECT 
+  u.user_id              AS id,
+  u.initial_with_name    AS name,
+  s.speciality_type      AS specialty,
+  d.isActive             AS available
+FROM users u
+JOIN doctor d        ON u.user_id = d.users_user_id
+JOIN specialization s ON d.specialization_specialization_id = s.specialization_id
+JOIN status st       ON u.status_status_id = st.status_id
+WHERE 1=1
+    `;
+    let params = [];
+
+    if (search) {
+      sql += ' AND (u.initial_with_name LIKE ? OR u.f_name LIKE ? OR u.l_name LIKE ? OR s.speciality_type LIKE ?)';
+      params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
+    }
+
+    if (available === 'true') {
+      sql += ' AND d.isActive = 1';
+    }
+
+    const [rows] = await db.execute(sql, params);
+    res.json(rows);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message || "Failed to get doctors" });
+  }
+};
+
+exports.GetAppointments = async (req, res) => {
+  try {
+    const [rows] = await db.execute(`
+      SELECT 
+        ds.scheduler_id,
+        ds.max_patients,
+        ds.doctor_doctor_id        AS doctor_id, 
+        dshdow.appointmentDate,
+        TIME_FORMAT(dshdow.starting_time, '%H:%i') AS start_time,
+        TIME_FORMAT(dshdow.end_time, '%H:%i')      AS end_time,
+        d.specialNote, 
+        u.initial_with_name, 
+        spec.speciality_type 
+      FROM doctor_scheduler ds 
+      INNER JOIN doctor_scheduler_has_days_of_week dshdow 
+        ON ds.scheduler_id = dshdow.doctor_scheduler_scheduler_id
+      INNER JOIN doctor d   ON ds.doctor_doctor_id = d.doctor_id
+      INNER JOIN users u    ON d.users_user_id = u.user_id
+      INNER JOIN specialization spec 
+        ON d.specialization_specialization_id = spec.specialization_id
+      ORDER BY dshdow.appointmentDate ASC, dshdow.starting_time ASC
+    `);                             // ← ORDER BY is here, not appended after
+
+    res.json({ appointments: rows });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message || 'Failed to get appointments' });
+  }
+};
+
+// POST create appointment
+exports.CreateAppointment = async (req, res) => {
+  try {
+    const { patient_count, doctorId, date, time, duration, notes } = req.body;
+
+    // ── Validate ──────────────────────────────────────────────
+    if (!patient_count || !doctorId || !date || !time) {
+      return res.status(400).json({
+        message: 'patient_count, doctorId, date and time are required'
+      });
+    }
+    if (patient_count < 1) {
+      return res.status(400).json({ message: 'Patient count must be at least 1' });
+    }
+
+    // ── Check doctor exists ───────────────────────────────────
+    const [docRows] = await db.execute(
+      'SELECT doctor_id FROM doctor WHERE users_user_id = ?',
+      [doctorId]
+    );
+    console.log('DOCTOR ROWS:', docRows);
+    if (docRows.length === 0) {
+      return res.status(404).json({ message: 'Doctor not found' });
+    }
+    const actualDoctorId = docRows[0].doctor_id;
+    // ── Check time slot not already taken ─────────────────────
+    const [conflict] = await db.execute(
+      `SELECT scheduler_id FROM doctor_scheduler ds INNER JOIN doctor_scheduler_has_days_of_week dshdow ON ds.scheduler_id = dshdow.doctor_scheduler_scheduler_id 
+       WHERE ds.doctor_doctor_id = ? AND dshdow.appointmentDate = ? AND dshdow.starting_time = ?`,
+      [actualDoctorId, date, time]
+    );
+    console.log('CONFLICT:', conflict);
+    if (conflict.length > 0) {
+      return res.status(409).json({ message: 'This time slot is already booked for that doctor' });
+    }
+
+    // ── Insert ────────────────────────────────────────────────
+    const [result] = await db.execute(
+      `INSERT INTO doctor_scheduler (max_patients, doctor_doctor_id, isAvailable)
+       VALUES (?, ?, ?)`,
+      [
+        patient_count,
+        actualDoctorId,
+        1,
+      ]
+    );
+
+    console.log('INSERT RESULT:', result);
+
+    const sheduler_id = result.insertId;
+
+    const dayName = getDayName(date);
+    console.log('DAY NAME:', dayName);
+
+    const [day_row] = await db.execute(
+      "SELECT days_of_week_id FROM days_of_week WHERE days_of_week_name = ?",
+      [dayName],
+    );
+
+    const day = day_row[0];
+    console.log('DAY ROW:', day_row);
+
+    if (!day) throw new Error(`Day "${dayName}" not found`);
+
+    const endTime = getEndTime(time, duration);
+    console.log('END TIME:', endTime);
+    await db.execute(
+      `INSERT INTO doctor_scheduler_has_days_of_week (doctor_scheduler_scheduler_id, days_of_week_days_of_week_id, starting_time, end_time, appointmentDate)
+       VALUES (?, ?, ?, ?,?)`,
+      [
+        sheduler_id,
+        day.days_of_week_id,
+        time,
+        endTime,
+        date,
+      ]
+    );
+
+    res.status(201).json({
+      message: 'Appointment scheduled successfully',
+      appointmentId: result.insertId
+    });
+
+  } catch (error) {
+    console.error('CREATE APPOINTMENT ERROR:', error);
+    res.status(500).json({ message: error.message || 'Failed to schedule appointment' });
+  }
+};
+
+function getDayName(dateString) {
+  const date = new Date(dateString);
+
+  const days = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday"
+  ];
+
+  return days[date.getDay()];
+}
+
+
+function getEndTime(time, durationMinutes) {
+  const date = new Date(`1970-01-01T${time}:00`);
+  date.setMinutes(date.getMinutes() + parseInt(durationMinutes));
+  return date.toTimeString().slice(0, 5); // → "09:30"
+}
+// PUT update appointment
+exports.UpdateAppointment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { patient_count, doctorId, date, time, duration, notes, status } = req.body;
+
+    const [result] = await db.execute(
+      `UPDATE appointments
+       SET patient_count = ?, doctor_id = ?, date = ?, time = ?,
+           duration = ?, notes = ?, status = ?
+       WHERE id = ?`,
+      [patient_count, doctorId, date, time, duration, notes, status, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+    res.json({ message: 'Appointment updated successfully' });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Failed to update appointment' });
+  }
+};
+
+// PATCH cancel
+exports.CancelAppointment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [result] = await db.execute(
+      `UPDATE appointments SET status = 'Cancelled' WHERE id = ?`, [id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+    res.json({ message: 'Appointment cancelled' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// DELETE
+exports.DeleteAppointment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [result] = await db.execute(
+      `DELETE FROM appointments WHERE id = ?`, [id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+    res.json({ message: 'Appointment deleted' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+

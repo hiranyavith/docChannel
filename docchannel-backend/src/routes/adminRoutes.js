@@ -34,9 +34,15 @@ const {
   getCity,
   addDoctor,
   updatedoctor,
+  GetAppointmentDoctor,
+  GetAppointments,
+  CreateAppointment,
+  UpdateAppointment,
+  CancelAppointment,
 } = require("../controllers/adminController");
 const { authenticateUser } = require("../middleware/authMiddleware");
 const { isAdmin } = require("../middleware/roleMiddleware");
+const { protect } = require('../middleware/adminMiddleware');
 
 const router = express.Router();
 
@@ -84,5 +90,10 @@ router.get("/getprovince", getProvice);
 router.get("/getdistrict", getDistrict);
 router.get("/getcity", getCity);
 router.post("/adddoctor", addDoctor);
-router.put("/updatedoctor/:id", updatedoctor );
+router.put("/updatedoctor/:id", updatedoctor);
+router.get("/doctor", GetAppointmentDoctor);
+router.get("/appointments", protect, GetAppointments);
+router.post("/appointments", protect, CreateAppointment);
+router.put("/appointments/:id", protect, UpdateAppointment);
+router.patch("/appointments/:id/cancel", protect, CancelAppointment);
 module.exports = router;
